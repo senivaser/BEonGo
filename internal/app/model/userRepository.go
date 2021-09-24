@@ -11,10 +11,12 @@ type UserRepository struct {
 	collection *mongo.Collection
 }
 
-func New(config *Config) (*UserRepository, error) {
+func NewUser() (*UserRepository, error) {
 
+	config := NewConfig()
 	db := NewDB()
-	collection, err := db.getCollection(config, "User")
+
+	collection, err := db.GetCollection(config, "User")
 
 	if err != nil {
 		return nil, err

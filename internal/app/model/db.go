@@ -35,7 +35,7 @@ func (db *DB) getClient(uri string) (*mongo.Client, error) {
 	return client, err
 }
 
-func (db *DB) getCollection(config *Config, collectionName string) (*mongo.Collection, error) {
+func (db *DB) GetCollection(config *Config, collectionName string) (*mongo.Collection, error) {
 	client, clientErr := db.getClient(config.uri)
 	var collection *mongo.Collection
 	if clientErr != nil {

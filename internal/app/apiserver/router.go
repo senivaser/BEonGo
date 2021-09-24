@@ -18,9 +18,17 @@ func (s *APIServer) handleHello() http.HandlerFunc {
 	}
 }
 
-func (s *APIServer) handleGetUser() http.HandlerFunc {
+func (s *APIServer) handleGetUser(guid string) http.HandlerFunc {
+
+	user, err := s.store.User.Get(guid)
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		io.WriteString(w, "hello")
+		if err != nil {
+			io.WriteString(w, err.Error())
+			return
+		}
+
+		io.WriteString(w, user.RefreshToken)
+
 	}
 }
