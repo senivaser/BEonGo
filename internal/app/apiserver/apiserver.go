@@ -15,13 +15,13 @@ type APIServer struct {
 	store  *model.Store
 }
 
-func New(config *Config) *APIServer {
+func New(config *Config, store *model.Store) *APIServer {
 
 	return &APIServer{
 		config: config,
 		logger: logrus.New(),
 		router: mux.NewRouter(),
-		store:  nil,
+		store:  store,
 	}
 }
 
@@ -30,8 +30,6 @@ func (s *APIServer) Start() error {
 	if err := s.configureLogger(); err != nil {
 		return err
 	}
-
-	s.store, _ = s.createStore()
 
 	s.configureRouter()
 
@@ -49,15 +47,4 @@ func (s *APIServer) configureLogger() error {
 	s.logger.SetLevel(level)
 
 	return nil
-}
-
-func (s *APIServer) createStore() (*model.Store, []error) {
-	store, errors := model.NewStore()
-
-	if len(errors) > 0 {
-		s.logger.Error("Create Store Errors: %v", errors)
-		return nil, errors
-	}
-
-	return store, errors
 }
