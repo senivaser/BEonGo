@@ -4,15 +4,13 @@ type Store struct {
 	User *UserRepository
 }
 
-func NewStore(config *Config) (*Store, []error) {
+func NewStore(config *Config) (*Store, map[string]error) {
 
-	var errors []error
+	errors := make(map[string]error)
 
-	var User *UserRepository = nil
-	if u, ue := NewUser(config); ue == nil {
-		User = u
-	} else {
-		errors = append(errors, ue)
+	User, ue := NewUser(config)
+	if ue != nil {
+		errors["User"] = ue
 	}
 
 	return &Store{

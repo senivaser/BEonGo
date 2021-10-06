@@ -23,11 +23,10 @@ func NewDB() *DB {
 }
 
 func (db *DB) getClient(uri string) (*mongo.Client, error) {
-	// Set client options
-	fmt.Println("uri", uri)
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://localhost:27017"))
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
 	// defer func() {
 	// 	if err = client.Disconnect(ctx); err != nil {
 	// 		panic(err)
@@ -50,18 +49,14 @@ func (db *DB) getClient(uri string) (*mongo.Client, error) {
 }
 
 func (db *DB) GetCollection(config *Config, collectionName string) (*mongo.Collection, error) {
+
 	client, clientErr := db.getClient(config.Uri)
 	var collection *mongo.Collection
-	fmt.Println("config: ", config)
+
 	if clientErr == nil {
-		collection = client.Database("taskDB").Collection("User")
+		collection = client.Database(config.Database).Collection(collectionName)
 	} else {
 		collection = nil
 	}
-
-	fmt.Println("col: ", collection)
-	fmt.Println("err: ", clientErr)
-	fmt.Println("DB:", config.Database)
-	fmt.Println("CN:", collectionName)
 	return collection, clientErr
 }

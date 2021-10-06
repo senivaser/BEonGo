@@ -1,6 +1,17 @@
-GET http://localhost:3001/getUser
+GET http://localhost:3001/auth/guid/login
 Content-Type: application/json
 
 {
     "guid": "ABCDE"
 }
+
+###
+
+GET http://localhost:3001/auth/refresh
+Content-Type: application/json
+
+{
+    "refreshToken": "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJjcmVhdGVkIjoxNjMzNTAyMjUyLCJleHBpcmVkIjoxNjMzNTg4NjUyLCJndWlkIjoiQUJDREUifQ.zGrIxLZWvzhy1HDil3k69tFC6__0N8M8weFVckfUPNS2LFTRmOD9PL4YBURBSwtdWLPgDaElNfXjO5tiFIafLw"
+}
+
+

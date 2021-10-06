@@ -5,8 +5,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/go-errors/errors"
+	"github.com/senivaser/BEonGo/internal/app/utils"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserRepository struct {
@@ -18,8 +22,7 @@ type UserRepository struct {
 func NewUser(config *Config) (*UserRepository, error) {
 
 	db := NewDB()
-	fmt.Print("config: ", config)
-	collection, err := db.GetCollection(config, "User")
+	collection, err := db.GetCollection(config, "users")
 
 	if err != nil {
 		return nil, err
@@ -27,25 +30,72 @@ func NewUser(config *Config) (*UserRepository, error) {
 
 	return &UserRepository{
 		collection: collection,
-		Config:     config,
-		DB:         db,
 	}, nil
 }
 
-func (ur *UserRepository) Get(guid string) (User, error) {
+func (ur *UserRepository) hashPassword(password string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	return string(bytes), err
+}
+
+func (ur *UserRepository) GetBy(field string, value string) (User, *errors.Error) {
+
+	filter := bson.D{{field, value}}
+	user, err := ur.Get(filter)
+
+	return user, err
+}
+
+func (ur *UserRepository) Get(filter primitive.D) (User, *errors.Error) {
 	var user User
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	filter := bson.D{{"guid", guid}}
+	fmt.Println("filter: " + utils.ToString(filter))
 	err := ur.collection.FindOne(ctx, filter).Decode(&user)
+	sErr := errors.Wrap(err, 0)
 
 	if err != nil {
-		return User{}, err
+		return User{}, sErr
 	}
 
 	return user, nil
+}
+
+func (ur *UserRepository) UpdateBy(field string, value string, updateField string, updateValue string) (mongo.UpdateResult, error) {
+
+	var err error
+
+	if updateField == "refreshToken" {
+		updateValue, err = ur.hashPassword(updateValue)
+	}
+
+	filter := bson.D{{field, value}}
+	setter := bson.D{{updateField, updateValue}}
+	result, err := ur.Update(filter, setter)
+
+	return result, err
+}
+
+func (ur *UserRepository) Update(filter primitive.D, setter primitive.D) (mongo.UpdateResult, error) {
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	result, err := ur.collection.UpdateOne(
+		ctx,
+		filter,
+		bson.D{
+			{"$set", setter},
+		},
+	)
+
+	if err != nil {
+		return *result, err
+	}
+
+	return *result, nil
 }
 
 func (ur *UserRepository) Create(user *User) (*mongo.InsertOneResult, error) {

@@ -34,12 +34,13 @@ func main() {
 
 	store, _ := createStore(storeConfig)
 	server := apiserver.New(serverConfig, store)
+
 	if err := server.Start(); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func createStore(config *model.Config) (*model.Store, []error) {
+func createStore(config *model.Config) (*model.Store, map[string]error) {
 	store, errors := model.NewStore(config)
 
 	if len(errors) > 0 {
